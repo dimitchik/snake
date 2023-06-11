@@ -1,6 +1,9 @@
 #include "basics.h"
 
-Direction opposite(Direction direction) {
+Direction opposite(Direction direction, Direction default_direction) {
+  if (opposite_direction.find(direction) == opposite_direction.end()) {
+    return default_direction;
+  }
   return opposite_direction.at(direction);
 }
 

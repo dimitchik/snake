@@ -3,38 +3,10 @@
 #include <stdio.h>
 
 #include "basics.h"
+#include "constants.h"
 #include "field.h"
 #include "font.h"
 #include "snake.h"
-
-const int SCREEN_WIDTH = 400;
-const int SCREEN_HEIGHT = 400;
-const int PIXEL_SIZE = 10;
-
-void render_frame(SDL_Window *window, SDL_Surface *screenSurface,
-                  Field *field) {
-  SDL_FillRect(screenSurface, NULL,
-               SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-  for (int i = 0; i < field->snake->parts.size(); i++) {
-    SDL_Rect rect = {
-      x : field->snake->parts[i].coords.x * PIXEL_SIZE,
-      y : field->snake->parts[i].coords.y * PIXEL_SIZE,
-      w : PIXEL_SIZE,
-      h : PIXEL_SIZE,
-    };
-    SDL_FillRect(screenSurface, &rect,
-                 SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-  }
-  SDL_Rect rect = {
-    x : field->fruit->coords.x * PIXEL_SIZE,
-    y : field->fruit->coords.y * PIXEL_SIZE,
-    w : PIXEL_SIZE,
-    h : PIXEL_SIZE,
-  };
-  SDL_FillRect(screenSurface, &rect,
-               SDL_MapRGB(screenSurface->format, 0xFF, 0x00, 0x00));
-  SDL_UpdateWindowSurface(window);
-}
 
 int init(SDL_Window **window, SDL_Surface **screenSurface) {
   const int init_result = SDL_Init(SDL_INIT_VIDEO);
@@ -91,26 +63,27 @@ int main(int argc, char *args[]) {
   if (init_result < 0) return init_result;
   Field *field =
       new Field(SCREEN_WIDTH / PIXEL_SIZE, SCREEN_HEIGHT / PIXEL_SIZE);
-  render_frame(window, screenSurface, field);
+  field->render(window, screenSurface);
   SDL_Event e;
   bool quit = false;
   bool game_over = false;
   while (quit == false) {
+    Direction direction;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) quit = true;
       if (e.type == SDL_KEYDOWN) {
         switch (e.key.keysym.sym) {
           case SDLK_DOWN:
-            field->snake->setDirection(Direction::Down);
+            direction = Direction::Down;
             break;
           case SDLK_UP:
-            field->snake->setDirection(Direction::Up);
+            direction = Direction::Up;
             break;
           case SDLK_LEFT:
-            field->snake->setDirection(Direction::Left);
+            direction = Direction::Left;
             break;
           case SDLK_RIGHT:
-            field->snake->setDirection(Direction::Right);
+            direction = Direction::Right;
             break;
           case SDLK_ESCAPE:
             quit = true;
@@ -126,6 +99,7 @@ int main(int argc, char *args[]) {
         }
       }
     }
+    field->snake->setDirection(direction);
     if (game_over) continue;
     SDL_Delay(100);
     field->snake->move();
@@ -135,8 +109,9 @@ int main(int argc, char *args[]) {
       continue;
     }
     field->fruit->hit_test(field->snake);
-    render_frame(window, screenSurface, field);
+    field->render(window, screenSurface);
   }
+  delete field;
   TTF_CloseFont(font);
   SDL_DestroyWindow(window);
   SDL_Quit();

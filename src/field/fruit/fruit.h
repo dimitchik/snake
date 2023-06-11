@@ -14,4 +14,6 @@ class Fruit {
   Fruit(Field* field);
   void spawn();
   void hit_test(Snake* snake);
+  void render(SDL_Surface* screenSurface);
 };
+ 

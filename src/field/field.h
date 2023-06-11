@@ -11,4 +11,5 @@ class Field {
   Fruit* fruit;
   Field(int size_x, int size_y);
   ~Field();
+  void render(SDL_Window *window, SDL_Surface *screenSurface);
 };

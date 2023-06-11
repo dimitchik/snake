@@ -1,11 +1,12 @@
 #include "snake.h"
 
 #include "basics.h"
+#include "constants.h"
 #include "field.h"
 
 SnakePart::SnakePart(Coords coords) : coords(coords){};
 
-Snake::Snake(Coords coords, int length, Field* field) : field(field) {
+Snake::Snake(Coords coords, int length, Field *field) : field(field) {
   for (int i = 0; i < length; i++) {
     parts.push_back(SnakePart(coords));
   }
@@ -18,8 +19,8 @@ void Snake::move() {
 }
 bool Snake::hitTest() {
   Coords head = parts[0].coords;
-  if (head.x < 0 || head.x > field->size_x || head.y < 0 ||
-      head.y > field->size_y) {
+  if (head.x < 0 || head.x >= field->size_x || head.y < 0 ||
+      head.y >= field->size_y) {
     return true;
   }
   for (int i = 1; i < parts.size(); i++) {
@@ -29,10 +30,23 @@ bool Snake::hitTest() {
   }
   return false;
 }
-void Snake::setDirection(Direction direction) {
-  if ((opposite(direction) == this->direction)) return;
-  this->direction = direction;
+void Snake::setDirection(Direction new_direction) {
+  if ((opposite(new_direction, direction) == rendered_direction)) return;
+  direction = new_direction;
 }
 void Snake::grow() {
   parts.push_back(SnakePart(parts[parts.size() - 1].coords));
+}
+void Snake::render(SDL_Surface *screenSurface) {
+  for (int i = 0; i < parts.size(); i++) {
+    SDL_Rect rect = {
+      x : parts[i].coords.x * PIXEL_SIZE,
+      y : parts[i].coords.y * PIXEL_SIZE,
+      w : PIXEL_SIZE,
+      h : PIXEL_SIZE,
+    };
+    SDL_FillRect(screenSurface, &rect,
+                 SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+  }
+  rendered_direction = direction;
 }

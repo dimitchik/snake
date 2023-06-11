@@ -1,6 +1,7 @@
 #include "fruit.h"
 
 #include "basics.h"
+#include "constants.h"
 #include "field.h"
 #include "snake.h"
 
@@ -27,4 +28,15 @@ void Fruit::hit_test(Snake* snake) {
     snake->grow();
     spawn();
   }
+}
+
+void Fruit::render(SDL_Surface* screenSurface) {
+  SDL_Rect rect = {
+    x : coords.x * PIXEL_SIZE,
+    y : coords.y * PIXEL_SIZE,
+    w : PIXEL_SIZE,
+    h : PIXEL_SIZE,
+  };
+  SDL_FillRect(screenSurface, &rect,
+               SDL_MapRGB(screenSurface->format, 0xFF, 0x00, 0x00));
 }
