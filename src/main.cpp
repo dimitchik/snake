@@ -2,25 +2,37 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 
+#include "basics.h"
+#include "field.h"
+#include "font.h"
 #include "snake.h"
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 800;
+const int SCREEN_WIDTH = 400;
+const int SCREEN_HEIGHT = 400;
 const int PIXEL_SIZE = 10;
 
-void render_frame(SDL_Window *window, SDL_Surface *screenSurface, Snake snake) {
+void render_frame(SDL_Window *window, SDL_Surface *screenSurface,
+                  Field *field) {
   SDL_FillRect(screenSurface, NULL,
                SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-  for (int i = 0; i < snake.parts.size(); i++) {
+  for (int i = 0; i < field->snake->parts.size(); i++) {
     SDL_Rect rect = {
-      x : snake.parts[i].coords.x * PIXEL_SIZE,
-      y : snake.parts[i].coords.y * PIXEL_SIZE,
+      x : field->snake->parts[i].coords.x * PIXEL_SIZE,
+      y : field->snake->parts[i].coords.y * PIXEL_SIZE,
       w : PIXEL_SIZE,
       h : PIXEL_SIZE,
     };
     SDL_FillRect(screenSurface, &rect,
                  SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
   }
+  SDL_Rect rect = {
+    x : field->fruit->coords.x * PIXEL_SIZE,
+    y : field->fruit->coords.y * PIXEL_SIZE,
+    w : PIXEL_SIZE,
+    h : PIXEL_SIZE,
+  };
+  SDL_FillRect(screenSurface, &rect,
+               SDL_MapRGB(screenSurface->format, 0xFF, 0x00, 0x00));
   SDL_UpdateWindowSurface(window);
 }
 
@@ -30,7 +42,7 @@ int init(SDL_Window **window, SDL_Surface **screenSurface) {
     printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     return init_result;
   }
-  *window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED,
+  *window = SDL_CreateWindow("Snake", SDL_WINDOWPOS_UNDEFINED,
                              SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
                              SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
   if (*window == NULL) {
@@ -70,11 +82,16 @@ int main(int argc, char *args[]) {
   SDL_Surface *screenSurface = NULL;
   const int init_result = init(&window, &screenSurface);
   TTF_Font *font = NULL;
-  font = TTF_OpenFont("quadrangle.ttf", 28);
+  SDL_RWops *font_rw = SDL_RWFromConstMem(&font_data, font_length);
+  font = TTF_OpenFontRW(font_rw, 1, 28);
+  if (font == NULL) {
+    printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
+    return -1;
+  }
   if (init_result < 0) return init_result;
-  Snake snake =
-      Snake({40, 40}, 5, SCREEN_WIDTH / PIXEL_SIZE, SCREEN_HEIGHT / PIXEL_SIZE);
-  render_frame(window, screenSurface, snake);
+  Field *field =
+      new Field(SCREEN_WIDTH / PIXEL_SIZE, SCREEN_HEIGHT / PIXEL_SIZE);
+  render_frame(window, screenSurface, field);
   SDL_Event e;
   bool quit = false;
   bool game_over = false;
@@ -84,33 +101,43 @@ int main(int argc, char *args[]) {
       if (e.type == SDL_KEYDOWN) {
         switch (e.key.keysym.sym) {
           case SDLK_DOWN:
-            snake.setDirection(Direction::Down);
+            field->snake->setDirection(Direction::Down);
             break;
           case SDLK_UP:
-            snake.setDirection(Direction::Up);
+            field->snake->setDirection(Direction::Up);
             break;
           case SDLK_LEFT:
-            snake.setDirection(Direction::Left);
+            field->snake->setDirection(Direction::Left);
             break;
           case SDLK_RIGHT:
-            snake.setDirection(Direction::Right);
+            field->snake->setDirection(Direction::Right);
             break;
           case SDLK_ESCAPE:
             quit = true;
+            break;
+          case SDLK_RETURN:
+            if (game_over) {
+              delete field;
+              field = new Field(SCREEN_WIDTH / PIXEL_SIZE,
+                                SCREEN_HEIGHT / PIXEL_SIZE);
+              game_over = false;
+            }
             break;
         }
       }
     }
     if (game_over) continue;
     SDL_Delay(100);
-    snake.move();
-    if (snake.hitTest()) {
+    field->snake->move();
+    if (field->snake->hitTest()) {
       game_over = true;
       game_over_screen(window, screenSurface, font);
       continue;
     }
-    render_frame(window, screenSurface, snake);
+    field->fruit->hit_test(field->snake);
+    render_frame(window, screenSurface, field);
   }
+  TTF_CloseFont(font);
   SDL_DestroyWindow(window);
   SDL_Quit();
   return 0;
