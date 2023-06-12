@@ -40,10 +40,10 @@ void Snake::grow() {
 void Snake::render(SDL_Surface *screenSurface) {
   for (int i = 0; i < parts.size(); i++) {
     SDL_Rect rect = {
-      x : parts[i].coords.x * PIXEL_SIZE,
-      y : parts[i].coords.y * PIXEL_SIZE,
-      w : PIXEL_SIZE,
-      h : PIXEL_SIZE,
+        .x = parts[i].coords.x * PIXEL_SIZE,
+        .y = parts[i].coords.y * PIXEL_SIZE,
+        .w = PIXEL_SIZE,
+        .h = PIXEL_SIZE,
     };
     SDL_FillRect(screenSurface, &rect,
                  SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));

@@ -32,10 +32,10 @@ void Fruit::hit_test(Snake* snake) {
 
 void Fruit::render(SDL_Surface* screenSurface) {
   SDL_Rect rect = {
-    x : coords.x * PIXEL_SIZE,
-    y : coords.y * PIXEL_SIZE,
-    w : PIXEL_SIZE,
-    h : PIXEL_SIZE,
+      .x = coords.x * PIXEL_SIZE,
+      .y = coords.y * PIXEL_SIZE,
+      .w = PIXEL_SIZE,
+      .h = PIXEL_SIZE,
   };
   SDL_FillRect(screenSurface, &rect,
                SDL_MapRGB(screenSurface->format, 0xFF, 0x00, 0x00));
