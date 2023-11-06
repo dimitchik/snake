@@ -1,4 +1,10 @@
 .vscode
+.idea
 build
 build_wasm
 bin2c.exe
+cmake-build-debug
+CMakeFiles
+CMakeCache.txt
+Makefile
+cmake_install.cmake
